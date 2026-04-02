@@ -37,6 +37,9 @@ def callback():
         return CONFIRMATION_TOKEN
 
     if data['type'] == 'message_new':
+    print("ПОЛУЧЕНО СООБЩЕНИЕ:", data)
+
+    if data['type'] == 'message_new':
         user_id = data['object']['message']['from_id']
         text = data['object']['message']['text']
 
