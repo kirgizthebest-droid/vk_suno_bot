@@ -6,7 +6,7 @@ from suno import generate_song
 app = Flask(__name__)
 
 # 🔑 ВСТАВЬ СЮДА
-VK_TOKEN = "vk1.a.yHRjlGZz32DpRfH6EP9s3_pFOC12x8Rr_JvuAIpKW2Y4P8A5G1bJKr5qYLr_4CAxC7-gDTKFcoKaXtWLf9iPek82vvVB8AbxJkSBbvCwIzNfnxQBJk8acUjmzLdp79SFGsfY0g3CHAYVTtA3VRruyU9WrnA-3evntzrjUBeD2l06EQ1YRk2FrhwCtKfJPCGPiBaGu_kkhInzT7NWRF-Zig"
+VK_TOKEN = "токен вк"
 CONFIRMATION_TOKEN = "b34ed879"
 
 vk_session = vk_api.VkApi(token=VK_TOKEN)
