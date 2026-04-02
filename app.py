@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 # 🔑 ВСТАВЬ СЮДА
 VK_TOKEN = "ТВОЙ_VK_ТОКЕН"
-CONFIRMATION_TOKEN = "ТВОЙ_CONFIRM_CODE"
+CONFIRMATION_TOKEN = "b34ed879"
 
 vk_session = vk_api.VkApi(token=VK_TOKEN)
 vk = vk_session.get_api()
