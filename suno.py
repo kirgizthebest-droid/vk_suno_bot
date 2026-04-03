@@ -1,50 +1,57 @@
 import requests
-import os
 import time
+import os
 
-# 👉 ВСТАВЬ API В Render (НЕ СЮДА)
-SUNO_API_KEY = "1b9544b2a524d363c7ad40babfcf058e"
+API_KEY = os.getenv("SUNO_API_KEY")
 
-# ⚠️ ЗАМЕНИ если у тебя другой endpoint
-BASE_URL = "https://api.sunoapi.org/api/v1/generate"
+BASE_URL = "https://api.sunoapi.org/api/v1"
+
+headers = {
+    "Authorization": f"Bearer {API_KEY}",
+    "Content-Type": "application/json"
+}
+
 
 def generate_song(prompt):
-    headers = {
-        "Authorization": f"Bearer {SUNO_API_KEY}",
-        "Content-Type": "application/json"
-    }
-
-    data = {
-        "prompt": prompt
-    }
-
     try:
-        # 1. отправляем генерацию
-        response = requests.post(BASE_URL, json=data, headers=headers)
-        result = response.json()
+        # 1. создаём задачу
+        response = requests.post(
+            f"{BASE_URL}/generate",
+            json={
+                "prompt": prompt,
+                "customMode": False,
+                "instrumental": False,
+                "model": "V3_5"
+            },
+            headers=headers
+        )
 
-        print("Suno response:", result)
+        data = response.json()
+        print("Generate response:", data)
 
-        # если сразу вернуло аудио
-        if "audio_url" in result:
-            return result["audio_url"]
+        if data.get("code") != 200:
+            return f"❌ Ошибка API: {data}"
 
-        task_id = result.get("id")
+        task_id = data["data"]["taskId"]
 
-        # 2. проверяем статус
-        status_url = f"https://api.suno.ai/v1/status/{task_id}"
-
+        # 2. ждём результат
         for _ in range(20):
-            status_res = requests.get(status_url, headers=headers).json()
-            print("Status:", status_res)
+            res = requests.get(
+                f"{BASE_URL}/get?taskId={task_id}",
+                headers=headers
+            ).json()
 
-            if status_res.get("status") == "completed":
-                return status_res.get("audio_url")
+            print("Status:", res)
+
+            if res.get("code") == 200:
+                songs = res["data"].get("songs", [])
+                if songs:
+                    return songs[0]["audio_url"]
 
             time.sleep(3)
 
-        return "❌ Не удалось сгенерировать песню"
+        return "❌ Не удалось получить трек (таймаут)"
 
     except Exception as e:
-        print("Ошибка Suno:", e)
-        return "❌ Ошибка при генерации"
+        print("Ошибка:", e)
+        return "❌ Ошибка генерации"
