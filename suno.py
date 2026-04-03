@@ -6,7 +6,7 @@ import time
 SUNO_API_KEY = os.getenv("1b9544b2a524d363c7ad40babfcf058e")
 
 # ⚠️ ЗАМЕНИ если у тебя другой endpoint
-BASE_URL = "https://api.suno.ai/v1/generate"
+BASE_URL = "https://api.sunoapi.org/api/v1/generate"
 
 def generate_song(prompt):
     headers = {
