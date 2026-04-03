@@ -3,7 +3,7 @@ import os
 import time
 
 # 👉 ВСТАВЬ API В Render (НЕ СЮДА)
-SUNO_API_KEY = os.getenv("1b9544b2a524d363c7ad40babfcf058e")
+SUNO_API_KEY = "1b9544b2a524d363c7ad40babfcf058e"
 
 # ⚠️ ЗАМЕНИ если у тебя другой endpoint
 BASE_URL = "https://api.sunoapi.org/api/v1/generate"
