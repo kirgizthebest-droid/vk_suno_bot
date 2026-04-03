@@ -17,12 +17,13 @@ def generate_song(prompt):
         # 1. создаём задачу
         response = requests.post(
             f"{BASE_URL}/generate",
-            json={
-                "prompt": prompt,
-                "customMode": False,
-                "instrumental": False,
-                "model": "V3_5"
-            },
+           json={
+    "prompt": prompt,
+    "customMode": False,
+    "instrumental": False,
+    "model": "V3_5",
+    "callBackUrl": "https://webhook.site/test"
+},
             headers=headers
         )
 
