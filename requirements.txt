@@ -1,4 +1,3 @@
 flask
 requests
-vk_api
 gunicorn
