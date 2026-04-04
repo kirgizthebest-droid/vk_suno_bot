@@ -1,61 +1,60 @@
+from flask import Flask, request
 import requests
-import time
 import os
+import threading
+from suno import generate_song
 
-API_KEY = os.getenv("SUNO_API_KEY")
-BASE_URL = "https://api.sunoapi.org/api/v1"
+app = Flask(__name__)
 
-headers = {
-    "Authorization": f"Bearer {API_KEY}",
-    "Content-Type": "application/json"
-}
+VK_TOKEN = os.getenv("VK_TOKEN")
+GROUP_ID = os.getenv("GROUP_ID")
+
+users = {}
 
 
-def generate_song(prompt):
-    try:
-        response = requests.post(
-            f"{BASE_URL}/generate",
-            json={
-                "prompt": prompt,
-                "customMode": False,
-                "instrumental": False,
-                "model": "V3_5",
-                "callBackUrl": "https://example.com"
-            },
-            headers=headers
-        )
+def send_message(user_id, text):
+    requests.get(
+        "https://api.vk.com/method/messages.send",
+        params={
+            "user_id": user_id,
+            "message": text,
+            "random_id": 0,
+            "access_token": VK_TOKEN,
+            "v": "5.131"
+        }
+    )
 
-        data = response.json()
-        print("Generate:", data)
 
-        if data.get("code") != 200:
-            return f"❌ Ошибка API: {data}"
+def process_song(user_id, prompt):
+    audio_url = generate_song(prompt)
 
-        task_id = data["data"]["taskId"]
+    if "http" in audio_url:
+        send_message(user_id, f"🎧 Готово:\n{audio_url}")
+    else:
+        send_message(user_id, audio_url)
 
-        # ждём результат
-        for _ in range(20):
-            res = requests.get(
-                f"{BASE_URL}/generate/record?taskId={task_id}",
-                headers=headers
-            ).json()
 
-            print("Status:", res)
+@app.route("/", methods=["POST"])
+def callback():
+    data = request.json
 
-            if res.get("code") == 200:
-                songs = res["data"].get("songs", [])
-                if songs:
-                    return songs[0]["audio_url"]
+    if data["type"] == "confirmation":
+        return os.getenv("CONFIRMATION_TOKEN")
 
-            time.sleep(3)
+    if data["type"] == "message_new":
+        user_id = data["object"]["message"]["from_id"]
+        text = data["object"]["message"]["text"]
 
-        return "❌ Трек не успел сгенерироваться"
+        # запускаем генерацию в фоне
+        threading.Thread(
+            target=process_song,
+            args=(user_id, text)
+        ).start()
 
-    except Exception as e:
-        print("Ошибка:", e)
-        return "❌ Ошибка генерации"
-        del users[user_id]
+        send_message(user_id, "🎵 Генерирую песню...")
+
     return "ok"
 
+
 if __name__ == "__main__":
-    app.run(port=10000)
+    app.run()
