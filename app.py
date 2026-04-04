@@ -89,9 +89,7 @@ threading.Thread(
 
 send_message(user_id, "🎵 Генерирую песню...")
 return "ok"
-
-            del users[user_id]
-
+        del users[user_id]
     return "ok"
 
 if __name__ == "__main__":
