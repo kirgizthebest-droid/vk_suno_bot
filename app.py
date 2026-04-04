@@ -68,10 +68,27 @@ Details: {user['answers'][4] if len(user['answers']) > 4 else ""}
 Make it catchy and emotional.
 """
 
-            audio_url = generate_song(prompt)
+            import threading
+from suno import generate_song
 
-            send_message(user_id, "🎧 Готово!")
-            send_message(user_id, audio_url)
+
+def process_song(user_id, prompt):
+    audio_url = generate_song(prompt)
+
+    if "http" in audio_url:
+        send_message(user_id, f"🎧 Готово:\n{audio_url}")
+    else:
+        send_message(user_id, audio_url)
+
+
+# внутри callback:
+threading.Thread(
+    target=process_song,
+    args=(user_id, prompt)
+).start()
+
+send_message(user_id, "🎵 Генерирую песню...")
+return "ok"
 
             del users[user_id]
 
