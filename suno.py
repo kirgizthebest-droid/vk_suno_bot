@@ -3,7 +3,6 @@ import time
 import os
 
 API_KEY = os.getenv("SUNO_API_KEY")
-
 BASE_URL = "https://api.sunoapi.org/api/v1"
 
 headers = {
@@ -14,31 +13,31 @@ headers = {
 
 def generate_song(prompt):
     try:
-        # 1. создаём задачу
+        # создаём задачу
         response = requests.post(
             f"{BASE_URL}/generate",
-           json={
-    "prompt": prompt,
-    "customMode": False,
-    "instrumental": False,
-    "model": "V3_5",
-    "callBackUrl": "https://webhook.site/test"
-},
+            json={
+                "prompt": prompt,
+                "customMode": False,
+                "instrumental": False,
+                "model": "V3_5",
+                "callBackUrl": "https://example.com"
+            },
             headers=headers
         )
 
         data = response.json()
-        print("Generate response:", data)
+        print("Generate:", data)
 
         if data.get("code") != 200:
             return f"❌ Ошибка API: {data}"
 
         task_id = data["data"]["taskId"]
 
-        # 2. ждём результат
+        # правильный endpoint
         for _ in range(20):
             res = requests.get(
-                f"{BASE_URL}/get?taskId={task_id}",
+                f"{BASE_URL}/generate/record?taskId={task_id}",
                 headers=headers
             ).json()
 
@@ -51,7 +50,7 @@ def generate_song(prompt):
 
             time.sleep(3)
 
-        return "❌ Не удалось получить трек (таймаут)"
+        return "❌ Трек не успел сгенерироваться"
 
     except Exception as e:
         print("Ошибка:", e)
