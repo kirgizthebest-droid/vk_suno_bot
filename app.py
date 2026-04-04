@@ -1,94 +1,59 @@
-from flask import Flask, request
-import vk_api
-from vk_api.utils import get_random_id
-from suno import generate_song
+import requests
+import time
+import os
 
-app = Flask(__name__)
+API_KEY = os.getenv("SUNO_API_KEY")
+BASE_URL = "https://api.sunoapi.org/api/v1"
 
-# 🔑 ВСТАВЬ СЮДА
-VK_TOKEN = "vk1.a.yHRjlGZz32DpRfH6EP9s3_pFOC12x8Rr_JvuAIpKW2Y4P8A5G1bJKr5qYLr_4CAxC7-gDTKFcoKaXtWLf9iPek82vvVB8AbxJkSBbvCwIzNfnxQBJk8acUjmzLdp79SFGsfY0g3CHAYVTtA3VRruyU9WrnA-3evntzrjUBeD2l06EQ1YRk2FrhwCtKfJPCGPiBaGu_kkhInzT7NWRF-Zig"
-CONFIRMATION_TOKEN = "31a3887e"
-
-vk_session = vk_api.VkApi(token=VK_TOKEN)
-vk = vk_session.get_api()
-
-users = {}
-
-questions = [
-    "Какой стиль музыки? (рэп, поп, рок)",
-    "О чём песня?",
-    "Для кого песня?",
-    "Какое настроение?",
-    "Добавить конкретные слова или имя?"
-]
-
-def send_message(user_id, text):
-    vk.messages.send(
-        user_id=user_id,
-        message=text,
-        random_id=get_random_id()
-    )
-
-@app.route('/', methods=['POST'])
-def callback():
-    data = request.json
-
-    if data['type'] == 'confirmation':
-        return CONFIRMATION_TOKEN
-        
-    if data['type'] == 'message_new':
-        user_id = data['object']['message']['from_id']
-        text = data['object']['message']['text']
-
-        if user_id not in users:
-            users[user_id] = {"step": 0, "answers": []}
-            send_message(user_id, "Привет! 🎵 Создадим тебе песню")
-            send_message(user_id, questions[0])
-            return "ok"
-
-        user = users[user_id]
-
-        user["answers"].append(text)
-        user["step"] += 1
-
-        if user["step"] < len(questions):
-            send_message(user_id, questions[user["step"]])
-        else:
-            send_message(user_id, "⏳ Генерирую песню...")
-
-            prompt = f"""
-Create a song:
-
-Genre: {user['answers'][0]}
-Theme: {user['answers'][1]}
-For: {user['answers'][2]}
-Mood: {user['answers'][3]}
-Details: {user['answers'][4] if len(user['answers']) > 4 else ""}
-
-Make it catchy and emotional.
-"""
-
-            import threading
-from suno import generate_song
+headers = {
+    "Authorization": f"Bearer {API_KEY}",
+    "Content-Type": "application/json"
+}
 
 
-def process_song(user_id, prompt):
-    audio_url = generate_song(prompt)
+def generate_song(prompt):
+    try:
+        response = requests.post(
+            f"{BASE_URL}/generate",
+            json={
+                "prompt": prompt,
+                "customMode": False,
+                "instrumental": False,
+                "model": "V3_5",
+                "callBackUrl": "https://example.com"
+            },
+            headers=headers
+        )
 
-    if "http" in audio_url:
-        send_message(user_id, f"🎧 Готово:\n{audio_url}")
-    else:
-        send_message(user_id, audio_url)
+        data = response.json()
+        print("Generate:", data)
 
+        if data.get("code") != 200:
+            return f"❌ Ошибка API: {data}"
 
-# внутри callback:
-threading.Thread(
-    target=process_song,
-    args=(user_id, prompt)
-).start()
+        task_id = data["data"]["taskId"]
 
-send_message(user_id, "🎵 Генерирую песню...")
-return "ok"
+        # ждём результат
+        for _ in range(20):
+            res = requests.get(
+                f"{BASE_URL}/generate/record?taskId={task_id}",
+                headers=headers
+            ).json()
+
+            print("Status:", res)
+
+            if res.get("code") == 200:
+                songs = res["data"].get("songs", [])
+                if songs:
+                    return songs[0]["audio_url"]
+
+            time.sleep(3)
+
+        return "❌ Трек не успел сгенерироваться"
+
+    except Exception as e:
+        print("Ошибка:", e)
+        return "❌ Ошибка генерации"
         del users[user_id]
     return "ok"
 
