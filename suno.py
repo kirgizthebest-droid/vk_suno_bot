@@ -13,7 +13,6 @@ headers = {
 
 def generate_song(prompt):
     try:
-        # создаём задачу
         response = requests.post(
             f"{BASE_URL}/generate",
             json={
@@ -34,7 +33,7 @@ def generate_song(prompt):
 
         task_id = data["data"]["taskId"]
 
-        # правильный endpoint
+        # ждём результат
         for _ in range(20):
             res = requests.get(
                 f"{BASE_URL}/generate/record?taskId={task_id}",
