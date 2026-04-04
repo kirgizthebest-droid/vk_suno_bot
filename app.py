@@ -6,8 +6,8 @@ from suno import generate_song
 
 app = Flask(__name__)
 
-VK_TOKEN = os.getenv("vk1.a.yHRjlGZz32DpRfH6EP9s3_pFOC12x8Rr_JvuAIpKW2Y4P8A5G1bJKr5qYLr_4CAxC7-gDTKFcoKaXtWLf9iPek82vvVB8AbxJkSBbvCwIzNfnxQBJk8acUjmzLdp79SFGsfY0g3CHAYVTtA3VRruyU9WrnA-3evntzrjUBeD2l06EQ1YRk2FrhwCtKfJPCGPiBaGu_kkhInzT7NWRF-Zig")
-GROUP_ID = os.getenv("d716926f")
+VK_TOKEN = os.getenv("VK_TOKEN")
+GROUP_ID = os.getenv("GROUP_ID")
 
 users = {}
 
